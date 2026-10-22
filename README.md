@@ -2,7 +2,11 @@
 
 Tempo is a responsive React + TypeScript scheduling assistant that turns constraints, energy, priorities, and deadlines into a realistic daily plan. It runs with deterministic mock data and a local scheduling engine, so no API key is required.
 
-## Setup
+## Run Normally on Windows
+
+Install Node.js LTS once, then double-click `start-tempo.bat`. It installs dependencies on the first run, starts Tempo, and opens it in your browser automatically.
+
+## Setup Manually
 
 ```bash
 npm install
