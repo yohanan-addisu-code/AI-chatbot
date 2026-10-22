@@ -24,7 +24,7 @@ export function generateSchedule(tasks: Task[], fixed: FixedEvent[], preferences
     const end = addMinutes(start, task.duration)
     if (end > time('18:00')) { unscheduled.push({ task, reason: 'There is not enough open time before your day ends.' }); continue }
     const reason = task.energy === 'high' ? 'Placed in your focus window while your energy is highest.' : task.priority === 'high' ? 'Moved up because this task has a high priority.' : 'Placed after your fixed commitments with room to breathe.'
-    blocks.push({ id: `block-${task.id}`, kind: 'task', taskId: task.id, title: task.title, start: label(start), end: label(end), energy: task.energy, priority: task.priority, reason })
+    blocks.push({ id: `block-${task.id}`, kind: 'task', taskId: task.id, title: task.title, start: label(start), end: label(end), energy: task.energy, priority: task.priority, reason, completed: task.completed })
     cursor = addMinutes(end, preferences.buffer)
     sinceBreak += task.duration
     if (sinceBreak >= preferences.breakEvery) {
