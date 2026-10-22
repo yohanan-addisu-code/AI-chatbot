@@ -50,7 +50,7 @@
 
   function planMarkup(result) {
     const taskBlocks = result.blocks.filter((block) => block.kind === 'task' || block.kind === 'fixed')
-    return `<div class="message plan"><div class="plan-title">Here is a formatted plan based on that.</div>${taskBlocks.map((block) => `<div class="plan-row"><span>${block.start} - ${block.end}</span><strong>${escapeHtml(block.title)}</strong><button onclick="editTask(${tasks.findIndex((task) => task.title === block.title)})">Edit</button></div>`).join('')}<p class="muted">${result.blocks.filter((block) => block.kind === 'break').length} break(s) and 10-minute transition buffers included. ${result.unscheduled.length ? `${result.unscheduled.length} task(s) moved to your fallback list.` : 'Everything fit without scheduling over a fixed commitment.'}</p><button class="button secondary" onclick="window.render('schedule')">Review and edit full schedule →</button></div>`
+    return `<div class="message plan"><div class="plan-title">Here is a formatted plan based on that.</div>${taskBlocks.map((block) => `<div class="plan-row"><span>${block.start} - ${block.end}</span><strong>${escapeHtml(block.title)}</strong><button onclick="editTask(${tasks.findIndex((task) => task.title === block.title)})">Edit</button></div>`).join('')}<p class="muted">${result.blocks.filter((block) => block.kind === 'break').length} break(s) and 10-minute transition buffers included. ${result.unscheduled.length ? `${result.unscheduled.length} task(s) moved to your fallback list.` : 'Everything fit without scheduling over a fixed commitment.'}</p><button class="button secondary" onclick="openSchedule()">Review and edit full schedule →</button></div>`
   }
 
   window.sendPrompt = function sendPrompt(prompt) {
@@ -59,6 +59,13 @@
     if (!box) return
     box.innerHTML += `<div class="message user">${escapeHtml(prompt)}</div>`
     const lower = prompt.toLowerCase()
+    const requested = []
+    if (lower.includes('exam') || lower.includes('study') || lower.includes('prep')) requested.push({ title: 'Exam preparation', duration: 30, priority: 'High', energy: 'High' })
+    if (lower.includes('exercise') || lower.includes('workout')) requested.push({ title: 'Exercise', duration: 30, priority: 'Medium', energy: 'Medium', time: lower.includes('morning') ? '08:00' : '' })
+    if (lower.includes('write') || lower.includes('proposal')) requested.push({ title: 'Writing task', duration: 30, priority: 'Medium', energy: 'Medium' })
+    requested.forEach((item) => {
+      if (!tasks.some((task) => task.title === item.title)) tasks.push(item)
+    })
     if (lower.includes('30 minute')) {
       tasks = tasks.filter((task) => task.fixed || task.priority === 'High').map((task) => task.fixed ? task : { ...task, duration: Math.min(30, task.duration) })
     }
@@ -67,7 +74,7 @@
     }
     if (lower.includes('break') || lower.includes('intense')) breakEvery = 60
     if (lower.includes('priorit') && lower.includes('exam')) {
-      const exam = tasks.find((task) => task.title.toLowerCase().includes('biology') || task.title.toLowerCase().includes('exam'))
+      const exam = tasks.find((task) => task.title.toLowerCase().includes('exam'))
       if (exam) exam.priority = 'High'
     }
     const result = buildPlan()
@@ -85,6 +92,10 @@
   }
 
   const originalRender = window.render
+  window.openSchedule = function openSchedule() {
+    if (!plan) buildPlan()
+    window.render('schedule')
+  }
   window.render = function render(view) {
     if (view === 'schedule') {
       document.querySelectorAll('.nav button').forEach((button) => button.classList.toggle('active', button.dataset.view === view))
@@ -95,5 +106,5 @@
     originalRender(view)
   }
 
-  if (!plan) buildPlan()
+  if (!plan && tasks.length) buildPlan()
 })()
